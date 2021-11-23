@@ -27,8 +27,8 @@ const parseCurrency = async (data) => {
 
     currency.set("name", data.name);
     currency.set("symbol", data.symbol);
-    currency.set("price_as_usd", data.price_as_usd)
-    currency.set("percent_changed_last_1_hour", data.percent_changed_last_1_hour)
+    currency.set("priceAsUsd", data.price_as_usd)
+    currency.set("percentChangedLast1Hour", data.percent_changed_last_1_hour)
     try {
         let result = await currency.save()
         console.log('New object created with objectId: ' + result.id);
@@ -44,9 +44,13 @@ async function updateBack4App() {
 
     let payload = await axios.get('https://data.messari.io/api/v2/assets')
     let currencies = payload.data.data
-        .sort(function (a, b) { return a.percent_changed_last_1_hour - b.percent_changed_last_1_hour })
+        .sort(function (a, b) {
+            return a.metrics.market_data.percent_changed_last_1_hour - b.metrics.market_data.percent_changed_last_1_hour
+        })
         .reverse()
         .slice(0, 10)
+
+    // console.log(currencies)
     for (const [key, currency] of Object.entries(currencies)) {
         parseCurrency({
             id: currency.id,
@@ -64,7 +68,7 @@ app.get('/', cors(), async (req, res) => {
         .catch(err => res.json(err))
 })
 
-cron.schedule('*/10 * * * *', function () {
+cron.schedule('*/1 * * * *', function () {
     updateBack4App()
 });
 
