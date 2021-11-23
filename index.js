@@ -21,10 +21,9 @@ const Currency = Parse.Object.extend('Currency')
 const currencySchema = new Parse.Schema('Currency')
 const currencyQuery = new Parse.Query(Currency)
 
-
-const newCurrency = async (data) => {
+// parse currency as back4app
+const setNewCurrency = async (data) => {
     const currency = new Parse.Object("Currency");
-
     currency.set("name", data.name);
     currency.set("symbol", data.symbol);
     currency.set("price_as_usd", data.price_as_usd)
@@ -37,18 +36,20 @@ const newCurrency = async (data) => {
     }
 }
 
-const saveCurrencies = async () => {
+// update back4app
+function updateCurrencies() {
     currencySchema.purge({ useMasterKey: true })
         .then(response => console.log(response))
         .catch(err => console.log(err))
-    
+
     let payload = await axios.get('https://data.messari.io/api/v2/assets')
     let currencies = payload.data.data
         .sort(function (a, b) { return a.percent_changed_last_1_hour - b.percent_changed_last_1_hour })
         .reverse()
         .slice(0, 10)
-    for (const [key, currency] of Object.entries(currencies)) {
-        newCurrency({
+    
+        for (const [key, currency] of Object.entries(currencies)) {
+        setNewCurrency({
             id: currency.id,
             name: currency.name,
             symbol: currency.symbol,
@@ -64,9 +65,10 @@ app.get('/', cors(), async (req, res) => {
         .catch(err => res.json(err))
 })
 
-cron.schedule('*/10 * * * *', function() {
-    saveCurrencies()
-  });
+// scheduler 10 minutes interval
+cron.schedule('*/10 * * * *', function () {
+    updateCurrencies()
+});
 
 app.listen(PORT, () => {
     console.log(`running in port: ${PORT}`)
