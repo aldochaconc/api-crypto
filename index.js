@@ -77,7 +77,7 @@ app.get('/', cors(), async (req, res) => {
         .catch(err => res.json(err))
 })
 
-cron.schedule('*/1 * * * *', function() {
+cron.schedule('*/10 * * * *', function() {
     saveCurrencies()
   });
 
