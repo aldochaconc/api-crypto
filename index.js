@@ -3,6 +3,7 @@ const app = express()
 const cors = require('cors')
 const axios = require('axios')
 const Parse = require('parse/node')
+const cron = require('node-cron')
 
 const PORT = 8080
 const applicationKey = 'yx5XytAAQoQpB3Q0xJtcLZXPRpg984uDUIp5MBVE'
@@ -23,7 +24,7 @@ const currency = new Currency();
 const currencySchema = new Parse.Schema('Currency')
 const currencyQuery = new Parse.Query(Currency)
 
-//Saving your First Data Object on Back4App
+
 const newCurrency = async (data) => {
     const currency = new Parse.Object("Currency");
 
@@ -40,6 +41,10 @@ const newCurrency = async (data) => {
 }
 
 const saveCurrencies = async () => {
+    currencySchema.purge({ useMasterKey: true })
+        .then(response => console.log(response))
+        .catch(err => console.log(err))
+    
     let payload = await axios.get('https://data.messari.io/api/v2/assets')
     let currencies = payload.data.data
         .sort(function (a, b) { return a.percent_changed_last_1_hour - b.percent_changed_last_1_hour })
@@ -57,9 +62,7 @@ const saveCurrencies = async () => {
 }
 
 app.get('/api-crypto', cors(), async (req, res) => {
-    currencySchema.purge({ useMasterKey: true })
-        .then(response => console.log(response))
-        .catch(err => console.log(err))
+    
 
     saveCurrencies()
 
@@ -74,6 +77,9 @@ app.get('/', cors(), async (req, res) => {
         .catch(err => res.json(err))
 })
 
+cron.schedule('*/1 * * * *', function() {
+    saveCurrencies()
+  });
 
 app.listen(PORT, () => {
     console.log(`running in port: ${PORT}`)
