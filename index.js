@@ -21,9 +21,10 @@ const Currency = Parse.Object.extend('Currency')
 const currencySchema = new Parse.Schema('Currency')
 const currencyQuery = new Parse.Query(Currency)
 
-// parse currency as back4app
-const setNewCurrency = async (data) => {
+
+const parseCurrency = async (data) => {
     const currency = new Parse.Object("Currency");
+
     currency.set("name", data.name);
     currency.set("symbol", data.symbol);
     currency.set("price_as_usd", data.price_as_usd)
@@ -36,8 +37,7 @@ const setNewCurrency = async (data) => {
     }
 }
 
-// update back4app
-function updateCurrencies() {
+async function updateBack4App() {
     currencySchema.purge({ useMasterKey: true })
         .then(response => console.log(response))
         .catch(err => console.log(err))
@@ -47,9 +47,8 @@ function updateCurrencies() {
         .sort(function (a, b) { return a.percent_changed_last_1_hour - b.percent_changed_last_1_hour })
         .reverse()
         .slice(0, 10)
-    
-        for (const [key, currency] of Object.entries(currencies)) {
-        setNewCurrency({
+    for (const [key, currency] of Object.entries(currencies)) {
+        parseCurrency({
             id: currency.id,
             name: currency.name,
             symbol: currency.symbol,
@@ -65,9 +64,8 @@ app.get('/', cors(), async (req, res) => {
         .catch(err => res.json(err))
 })
 
-// scheduler 10 minutes interval
 cron.schedule('*/10 * * * *', function () {
-    updateCurrencies()
+    updateBack4App()
 });
 
 app.listen(PORT, () => {
