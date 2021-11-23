@@ -9,8 +9,6 @@ const PORT = 8080
 const applicationKey = 'yx5XytAAQoQpB3Q0xJtcLZXPRpg984uDUIp5MBVE'
 const optionalJSKey = '2yIsbEJ7123WitODyMOT9Za8oHfgXjOxf8txwFLF'
 
-
-
 app.use(express.urlencoded({ extended: true }))
 app.use(express.json())
 app.use(cors())
@@ -20,7 +18,6 @@ Parse.serverURL = 'https://parseapi.back4app.com/'
 Parse.masterKey = 'XppXTdeCoB3zJ2gT4VcH9NLTtu6Beukz4lrJ1smW';
 
 const Currency = Parse.Object.extend('Currency')
-const currency = new Currency();
 const currencySchema = new Parse.Schema('Currency')
 const currencyQuery = new Parse.Query(Currency)
 
@@ -60,16 +57,6 @@ const saveCurrencies = async () => {
         })
     }
 }
-
-app.get('/api-crypto', cors(), async (req, res) => {
-    
-
-    saveCurrencies()
-
-    currencyQuery.find()
-        .then(response => res.send(response))
-        .catch(err => res.send(err))
-})
 
 app.get('/', cors(), async (req, res) => {
     currencyQuery.find()
